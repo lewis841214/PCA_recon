@@ -15,7 +15,7 @@ def generate_projections_ASTRA(Vol, Angles, ProjSize, BatchSizeAstra):
     """Generate projections with ASTRA toolbox
 
     Parameters
-    ----------
+    ----------generate_2D_projections
     angles_gen_mode : str
         Takes values in [`uniform_angles`, `uniform_quaternions`]
     """
@@ -150,7 +150,8 @@ def generate_2D_projections(input_file_path, ProjNber, AngCoverage, AngShift, An
         Angles[0] = [0, 0, 0]
 
         # Generate projs with ASTRA by batches 
-        Iter = int(ProjNber/BatchSizeAstra) 
+        Iter = int(ProjNber/BatchSizeAstra)
+        print(type(Vol))
         for i in range(Iter):
 
             # Generate projections 

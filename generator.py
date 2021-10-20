@@ -6,7 +6,7 @@ from cryoem.projections import generate_2D_projections
 parser = configargparse.ArgParser(default_config_files=["protein.config"], 
                                   description="Generator of 2D projections of 3D Cryo-Em volumes")
 parser.add("--config-file", "-conf", help='Config file path', 
-            required=True, is_config_file=True)
+            required=True, is_config_file=True, default = '/')
 parser.add("--input-file","-in", help="Input file of 3D volume (*.mrc format)", 
             type=str)
 parser.add("--projections-num", "-num", help="Number of 2D projections. Default 5000", 
