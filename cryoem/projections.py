@@ -10,33 +10,61 @@ from cryoem.rotation_matrices import RotationMatrix
 from tensorflow_graphics.geometry.transformation import quaternion
 from cryoem.conversions import quaternion2euler
 
- 
-def generate_projections_ASTRA(Vol, Angles, ProjSize, BatchSizeAstra):
+
+def back_projections_ASTRA(Projections, Angles, ProjSize, BatchSizeAstra):
     """Generate projections with ASTRA toolbox
 
+    First, since the
+    projections = np.transpose(Proj_data, (1, 0, 2))
+    where we need to process Proj_data
+    So here we transpose it back
+    Proj_data = np.transpose(projections, (1, 0, 2))
+
+    """
+
+    Proj_data = np.transpose(Projections, (1, 0, 2))
+
+    # Create 3D geometry in ASTRA
+
+    Vol_geom = astra.create_vol_geom(ProjSize , ProjSize , ProjSize)
+
+    # Generate orientation vectors based on angles
+    Orientation_Vectors = RotationMatrix(Angles)
+
+    # Create projection 2D geometry in ASTRA
+    Proj_geom = astra.create_proj_geom('parallel3d_vec', ProjSize, ProjSize, Orientation_Vectors)
+
+    # Generate projs
+    bproj_id, BProj_data = astra.create_backprojection3d_gpu(Proj_data, Proj_geom, Vol_geom)
+
+
+
+    return BProj_data
+
+
+def generate_projections_ASTRA(Vol, Angles, ProjSize, BatchSizeAstra):
+    """Generate projections with ASTRA toolbox
     Parameters
     ----------generate_2D_projections
     angles_gen_mode : str
         Takes values in [`uniform_angles`, `uniform_quaternions`]
     """
     # Create 3D geometry in ASTRA
-    Vol_geom    = astra.create_vol_geom(Vol.shape[1], Vol.shape[2], Vol.shape[0])
+    Vol_geom = astra.create_vol_geom(Vol.shape[1], Vol.shape[2], Vol.shape[0])
 
-    
     # Generate orientation vectors based on angles
-    Orientation_Vectors   = RotationMatrix(Angles)
+    Orientation_Vectors = RotationMatrix(Angles)
 
     # Create projection 2D geometry in ASTRA
     Proj_geom = astra.create_proj_geom('parallel3d_vec', ProjSize, ProjSize, Orientation_Vectors)
 
-    # Generate projs 
+    # Generate projs
     _, Proj_data = astra.create_sino3d_gpu(Vol, Proj_geom, Vol_geom)
 
-    # Reshape projections correctly 
+    # Reshape projections correctly
     Projections = np.transpose(Proj_data, (1, 0, 2))
 
     return Projections
-
 
 def generate_2D_projections(input_file_path, ProjNber, AngCoverage, AngShift, Angles=None, angles_gen_mode=None, output_file_name=None, dtype=np.float32):
     """ Generate 2d protein projections
